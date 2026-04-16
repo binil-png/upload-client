@@ -82,7 +82,7 @@ export function Dashboard() {
     <div className="bg-white rounded-lg shadow-md border border-slate-100 overflow-hidden transition-all text-sm">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-3 border-b border-slate-100 bg-slate-50/50">
         <div className="mb-2 sm:mb-0">
-          <h2 className="text-base font-bold text-slate-800 leading-tight">Patient Synchronization</h2>
+          {/* <h2 className="text-base font-bold text-slate-800 leading-tight">Patient Synchronization</h2> */}
           <p className="text-xs font-medium text-slate-500 mt-0.5">
             <span className="inline-flex items-center justify-center bg-indigo-100 text-indigo-700 px-1.5 rounded mr-1">Pg {page}</span>
             {limit} per page
