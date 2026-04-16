@@ -16,9 +16,23 @@ export interface Patient {
 
 export function Dashboard() {
   const [patients, setPatients] = useState<Patient[]>([]);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState<number | null>(null); // Start with null to fetch initial page
   const [isProcessing, setIsProcessing] = useState(false);
   const limit = 50;
+
+  // Initial load: determine the fresh batch page
+  useEffect(() => {
+    async function fetchInitialPage() {
+      try {
+        const response = await axios.get(`${API_URL}/last-batch?limit=${limit}`);
+        setPage(response.data.next_page || 1);
+      } catch (error) {
+        console.error('Error fetching starting page:', error);
+        setPage(1); // Fallback
+      }
+    }
+    fetchInitialPage();
+  }, []);
 
   // Initialize WebSockets
   useEffect(() => {
@@ -36,6 +50,13 @@ export function Dashboard() {
       );
     });
 
+    socket.on('batch_complete', () => {
+      // Automatically move to the next page after a small delay
+      setTimeout(() => {
+        setPage(prev => (prev !== null ? prev + 1 : 1));
+      }, 3000); // 3-second delay to allow user to see the success logs
+    });
+
     return () => {
       socket.disconnect();
     };
@@ -43,6 +64,8 @@ export function Dashboard() {
 
   // Fetch Page Data
   useEffect(() => {
+    if (page === null) return; // Wait for initial page detection
+
     async function fetchPatients() {
       try {
         const response = await axios.get(`${API_URL}/patients?page=${page}&limit=${limit}`);
@@ -84,7 +107,7 @@ export function Dashboard() {
         <div className="mb-2 sm:mb-0">
           {/* <h2 className="text-base font-bold text-slate-800 leading-tight">Patient Synchronization</h2> */}
           <p className="text-xs font-medium text-slate-500 mt-0.5">
-            <span className="inline-flex items-center justify-center bg-indigo-100 text-indigo-700 px-1.5 rounded mr-1">Pg {page}</span>
+            <span className="inline-flex items-center justify-center bg-indigo-100 text-indigo-700 px-1.5 rounded mr-1">Pg {page || '...'}</span>
             {limit} per page
           </p>
         </div>
@@ -139,7 +162,7 @@ export function Dashboard() {
       </div>
 
       <Pagination 
-        currentPage={page} 
+        currentPage={page || 1} 
         onNext={() => setPage(p => p + 1)} 
         onPrev={() => setPage(p => Math.max(1, p - 1))} 
         hasNextPage={patients.length === limit}
