@@ -87,8 +87,13 @@ export function Dashboard() {
     if (patients.length === 0) return;
     setIsProcessing(true);
     try {
-      const patientIds = patients.map(p => p.patient_id);
-      await axios.post(`${API_URL}/process-batch`, { patients });
+      const patientList =[]
+      for(let p of patients) {
+        if(p.status == "Pending"){
+          patientList.push(p);
+        }
+      }
+      await axios.post(`${API_URL}/process-batch`, { patients: patientList });
       
       // Setting status locally ahead of time for immediate feedback
       setPatients(prev => prev.map(p => 
